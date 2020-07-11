@@ -8,6 +8,7 @@
 
 import React from 'react';
 import {
+  Alert,
   SafeAreaView,
   StyleSheet,
   ScrollView,
@@ -37,14 +38,34 @@ const App = () => {
 
   React.useEffect(() => {
     NetworkInfo.getIPAddress().then((ipAddress) => {
-      // Create server 
-      nodejs.start('main.js');
+      // Create server
+      nodejs.start('server.js');
       // Add listeners for messages
       nodejs.channel.addListener(
         'message',
         (msg) => {
           // eslint-disable-next-line no-alert
           alert(msg);
+        },
+        this,
+      );
+      nodejs.channel.addListener(
+        'requestAccess',
+        (msg) => {
+          // eslint-disable-next-line no-alert
+          Alert.alert('Access Requested', msg, [
+            {
+              text: 'Accept',
+              onPress: () =>
+                nodejs.channel.post('accessStatus', {status: 'ACCEPTED'}),
+            },
+            {
+              text: 'Cancel',
+              style: 'cancel',
+              onPress: () =>
+                nodejs.channel.post('accessStatus', {status: 'DENIED'}),
+            },
+          ]);
         },
         this,
       );
@@ -85,7 +106,7 @@ const App = () => {
               color: 'white',
               padding: 5,
               margin: 10,
-              fontSize: 18
+              fontSize: 18,
             }}
             onChangeText={(text) => setValue(text)}
             //onSubmitEditing={(text) => onChangeText(text)}
@@ -100,13 +121,15 @@ const App = () => {
               fontSize: 18,
             }}
             onChangeText={(text) => setPassword(text)}
-            onSubmitEditing={(text) => nodejs.channel.send({password: text.nativeEvent.text})}
+            onSubmitEditing={(text) =>
+              nodejs.channel.send({password: text.nativeEvent.text})
+            }
             value={password}
           />
           <WebView
             ref={webRef}
             source={{uri: value}}
-            style={{ height: 500, width: '100%' }}
+            style={{height: 500, width: '100%'}}
           />
         </ScrollView>
       </SafeAreaView>

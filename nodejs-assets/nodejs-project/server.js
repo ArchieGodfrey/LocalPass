@@ -1,34 +1,32 @@
 const rn_bridge = require('rn-bridge');
 const express = require('express');
-const request = require('request');
+const bodyParser = require('body-parser');
 const app = express();
 
-let server = undefined;
+// Temp vars
+let server;
 let tempAddress = '';
 let tempStorage = '';
 
+// Require routes
+const auth = require('./routes/auth');
+const manager = require('./routes/manager');
+
+// Setup middleware
+
+/* Allow CORS policy
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   next();
-});
+});*/
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({extended: false}));
+// parse application/json
+app.use(bodyParser.json());
 
-app.get('/getPasswords', (req, res) => {
-  res.send(tempStorage);
-});
-
-app.get('/', (req, res) => {
-  request({url: `${tempAddress}/getPasswords`}, (error, response, body) => {
-    if (error || response.statusCode !== 200) {
-      return res
-        .status(500)
-        .json({type: 'error', message: response.statusCode});
-    }
-    res.send(body);
-    //res.json(JSON.parse(body));
-  });
-});
-
-//app.listen(8080, '192.168.1.43');
+// Setup routes
+app.use('/auth', auth);
+app.use('/manager', manager);
 
 // Listen for messages sent from React-Native
 rn_bridge.channel.on('message', (req) => {
