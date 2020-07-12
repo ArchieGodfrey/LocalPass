@@ -74,7 +74,10 @@ export default function Passwords() {
         style={styles.background}
         onPress={() => {
           setCurrentEditing(null);
-          storeData(passwords);
+          const noNew = [...passwords].filter(
+            (password) => password.website !== 'New Password',
+          );
+          storeData(noNew);
         }}>
         <View style={styles.inner}>
           <Text style={styles.header}>Passwords</Text>
@@ -137,6 +140,6 @@ const styles = StyleSheet.create({
   },
   list: {
     margin: 20,
-    height: '100%',
+    marginBottom: 60,
   },
 });
