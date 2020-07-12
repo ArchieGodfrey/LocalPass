@@ -68,51 +68,54 @@ export default function Passwords() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container} onResponderStart>
-      <TouchableOpacity
-        activeOpacity={0}
-        style={styles.background}
-        onPress={() => {
-          setCurrentEditing(null);
-          const noNew = [...passwords].filter(
-            (password) => password.website !== 'New Password',
-          );
-          storeData(noNew);
-        }}>
-        <View style={styles.inner}>
-          <Text style={styles.header}>Passwords</Text>
-          <FlatList
-            style={styles.list}
-            data={passwords}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            extraData={currentEditing}
-            ListFooterComponent={
-              <>
-                <NewItem
-                  title="Add"
-                  onPress={() =>
-                    setPasswords([
-                      ...passwords,
-                      {id: passwords.length, website: 'New Password'},
-                    ])
-                  }
-                />
-                <NewItem
-                  title="Import"
-                  onPress={() =>
-                    setPasswords([
-                      ...passwords,
-                      {id: passwords.length, website: 'New Password'},
-                    ])
-                  }
-                />
-              </>
-            }
-          />
-        </View>
-      </TouchableOpacity>
-    </SafeAreaView>
+    <>
+      <StatusBar barStyle="dark-content" />
+      <SafeAreaView style={styles.container}>
+        <TouchableOpacity
+          activeOpacity={0}
+          style={styles.background}
+          onPress={() => {
+            setCurrentEditing(null);
+            const noNew = [...passwords].filter(
+              (password) => password.website !== 'New Password',
+            );
+            storeData(noNew);
+          }}>
+          <View style={styles.inner}>
+            <Text style={styles.header}>Passwords</Text>
+            <FlatList
+              style={styles.list}
+              data={passwords}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id}
+              extraData={currentEditing}
+              ListFooterComponent={
+                <>
+                  <NewItem
+                    title="Add"
+                    onPress={() =>
+                      setPasswords([
+                        ...passwords,
+                        {id: passwords.length, website: 'New Password'},
+                      ])
+                    }
+                  />
+                  <NewItem
+                    title="Import"
+                    onPress={() =>
+                      setPasswords([
+                        ...passwords,
+                        {id: passwords.length, website: 'New Password'},
+                      ])
+                    }
+                  />
+                </>
+              }
+            />
+          </View>
+        </TouchableOpacity>
+      </SafeAreaView>
+    </>
   );
 }
 

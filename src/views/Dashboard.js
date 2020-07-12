@@ -11,168 +11,171 @@ import {
   Alert,
   SafeAreaView,
   StyleSheet,
-  ScrollView,
-  View,
   Text,
   StatusBar,
-  Button,
-  TextInput,
+  TouchableOpacity,
 } from 'react-native';
-import {WebView} from 'react-native-webview';
 import {NetworkInfo} from 'react-native-network-info';
-
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
 import nodejs from 'nodejs-mobile-react-native';
 
-const Dashboard = () => {
-  const [value, setValue] = React.useState('https://www.google.com');
-  const [address, setAddress] = React.useState('');
-  const [password, setPassword] = React.useState('');
+const ServerStatusEnum = {
+  open: 'Server Opened',
+  closing: 'Server Closing',
+  closed: 'Server Closed',
+};
 
-  React.useEffect(() => {
+const Dashboard = () => {
+  const [address, setAddress] = React.useState(
+    'Please connect to a Wifi connection',
+  );
+  const [serverStatus, setServerStatus] = React.useState(
+    ServerStatusEnum.closed,
+  );
+
+  const getAddress = () => {
     NetworkInfo.getIPAddress().then((ipAddress) => {
       // Create server
       nodejs.start('server.js');
-      // Add listeners for messages
-      nodejs.channel.addListener(
-        'message',
-        (msg) => {
-          // eslint-disable-next-line no-alert
-          alert(msg);
-        },
-        this,
-      );
-      nodejs.channel.addListener(
-        'requestAccess',
-        (msg) => {
-          // eslint-disable-next-line no-alert
-          Alert.alert('Access Requested', msg, [
-            {
-              text: 'Accept',
-              onPress: () =>
-                nodejs.channel.post('accessStatus', {status: 'ACCEPTED'}),
-            },
-            {
-              text: 'Cancel',
-              style: 'cancel',
-              onPress: () =>
-                nodejs.channel.post('accessStatus', {status: 'DENIED'}),
-            },
-          ]);
-        },
-        this,
-      );
       setAddress(ipAddress);
     });
+  };
+
+  React.useEffect(() => {
+    getAddress();
+    // Add listeners for messages
+    nodejs.channel.addListener(
+      'message',
+      (msg) => {
+        // eslint-disable-next-line no-alert
+        alert(msg);
+      },
+      this,
+    );
+    nodejs.channel.addListener(
+      'startedServer',
+      () => {
+        setServerStatus('Server Opened');
+      },
+      this,
+    );
+    nodejs.channel.addListener(
+      'closedServer',
+      () => {
+        setServerStatus('Server Closed');
+      },
+      this,
+    );
+    nodejs.channel.addListener(
+      'requestAccess',
+      (msg) => {
+        Alert.alert('Access Requested', msg, [
+          {
+            text: 'Accept',
+            onPress: () =>
+              nodejs.channel.post('accessStatus', {status: 'ACCEPTED'}),
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () =>
+              nodejs.channel.post('accessStatus', {status: 'DENIED'}),
+          },
+        ]);
+      },
+      this,
+    );
   });
-
-  const webRef = React.useRef(null);
-
   return (
     <>
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <Button
-            title="Start Server"
-            onPress={() => {
-              nodejs.channel.send({address});
-              setValue(`http://${address}:8080/`);
-            }}
-          />
-          <Button
-            title="Close Server"
-            onPress={() => nodejs.channel.send({status: 'close'})}
-          />
-          <Button title="Refresh" onPress={() => webRef.current.reload()} />
-          <TextInput
-            style={{
-              backgroundColor: 'grey',
-              color: 'white',
-              padding: 5,
-              margin: 10,
-              fontSize: 18,
-            }}
-            onChangeText={(text) => setValue(text)}
-            //onSubmitEditing={(text) => onChangeText(text)}
-            value={`${value}`}
-          />
-          <TextInput
-            style={{
-              backgroundColor: 'grey',
-              color: 'white',
-              padding: 5,
-              margin: 10,
-              fontSize: 18,
-            }}
-            onChangeText={(text) => setPassword(text)}
-            onSubmitEditing={(text) =>
-              nodejs.channel.send({password: text.nativeEvent.text})
-            }
-            value={password}
-          />
-          <WebView
-            ref={webRef}
-            source={{uri: value}}
-            style={{height: 500, width: '100%'}}
-          />
-        </ScrollView>
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.header} onPress={getAddress}>
+          Local Pass
+        </Text>
+        <Text style={styles.subheading}>{address}</Text>
+        {address === 'Please connect to a Wifi connection' && (
+          <Text style={styles.tryAgain}>Press here to try again</Text>
+        )}
+        <Text
+          style={[
+            styles.subheading,
+            serverStatus === ServerStatusEnum.open
+              ? styles.serverOpen
+              : styles.serverClosed,
+          ]}>
+          {serverStatus}
+        </Text>
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={() => {
+            nodejs.channel.post('startServer', {address});
+          }}>
+          <Text style={styles.buttonText}>Start Server</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => {
+            setServerStatus(ServerStatusEnum.closing);
+            nodejs.channel.post('closeServer');
+          }}>
+          <Text style={styles.buttonText}>Close Server</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     </>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    marginTop: StatusBar.currentHeight || 0,
+    backgroundColor: '#403F4C',
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
+  header: {
+    fontSize: 52,
+    fontWeight: '500',
+    marginBottom: 20,
+    color: '#F4F9E9',
+    textAlign: 'center',
   },
-  body: {
-    backgroundColor: Colors.white,
+  subheading: {
+    fontSize: 40,
+    fontWeight: '500',
+    marginBottom: 20,
+    color: '#F4F9E9',
+    textAlign: 'center',
   },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  tryAgain: {
+    fontSize: 30,
+    fontWeight: '500',
+    marginBottom: 20,
+    color: '#FF6933',
+    textAlign: 'center',
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
+  serverOpen: {
+    color: '#618B4A',
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
+  serverClosed: {
+    color: '#CC2E28',
   },
-  highlight: {
-    fontWeight: '700',
+  startButton: {
+    borderRadius: 5,
+    backgroundColor: 'green',
+    marginTop: 50,
   },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
+  closeButton: {
+    borderRadius: 5,
+    backgroundColor: '#FF6933',
+    marginTop: 50,
+  },
+  buttonText: {
+    width: 250,
+    padding: 15,
+    fontSize: 40,
+    fontWeight: '500',
+    color: '#F4F9E9',
+    textAlign: 'center',
   },
 });
 
