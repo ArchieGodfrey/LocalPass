@@ -6,11 +6,11 @@ import {
   StyleSheet,
   Text,
   StatusBar,
-  Button,
+  TouchableOpacity,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import PasswordItem from '../components/PasswordItem';
-import {TouchableOpacity} from 'react-native-gesture-handler';
+import NewItem from '../components/NewItem';
 
 const storeData = async (value) => {
   try {
@@ -31,26 +31,7 @@ const getData = async () => {
 };
 
 export default function Passwords() {
-  const [passwords, setPasswords] = React.useState([
-    {
-      id: 0,
-      website: 'https://login.live.com/',
-      username: 'username',
-      password: 'password',
-    },
-    {
-      id: 1,
-      website: 'https://login.live.com/',
-      username: 'username',
-      password: 'password',
-    },
-    {
-      id: 2,
-      website: 'https://login.live.com/',
-      username: 'username',
-      password: 'password',
-    },
-  ]);
+  const [passwords, setPasswords] = React.useState([]);
   const [currentEditing, setCurrentEditing] = React.useState(null);
   const onChangeValue = (id, text, key) => {
     const tempPasswords = [...passwords];
@@ -59,10 +40,18 @@ export default function Passwords() {
     setPasswords(tempPasswords);
   };
 
+  const onDelete = (id) => {
+    const tempPasswords = [...passwords];
+    const index = passwords.findIndex((item) => item.id === id);
+    tempPasswords.splice(index, 1)[index];
+    setPasswords(tempPasswords);
+  };
+
   const renderItem = ({item}) => (
     <TouchableOpacity onPress={() => setCurrentEditing(item.id)}>
       <PasswordItem
         item={{...item, editing: currentEditing}}
+        onDelete={onDelete}
         onChangeWebsite={(text) => onChangeValue(item.id, text, 'website')}
         onChangeUsername={(text) => onChangeValue(item.id, text, 'username')}
         onChangePassword={(text) => onChangeValue(item.id, text, 'password')}
@@ -81,6 +70,7 @@ export default function Passwords() {
   return (
     <SafeAreaView style={styles.container} onResponderStart>
       <TouchableOpacity
+        activeOpacity={0}
         style={styles.background}
         onPress={() => {
           setCurrentEditing(null);
@@ -94,6 +84,28 @@ export default function Passwords() {
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
             extraData={currentEditing}
+            ListFooterComponent={
+              <>
+                <NewItem
+                  title="Add"
+                  onPress={() =>
+                    setPasswords([
+                      ...passwords,
+                      {id: passwords.length, website: 'New Password'},
+                    ])
+                  }
+                />
+                <NewItem
+                  title="Import"
+                  onPress={() =>
+                    setPasswords([
+                      ...passwords,
+                      {id: passwords.length, website: 'New Password'},
+                    ])
+                  }
+                />
+              </>
+            }
           />
         </View>
       </TouchableOpacity>
@@ -105,6 +117,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginTop: StatusBar.currentHeight || 0,
+    backgroundColor: '#403F4C',
   },
   background: {
     height: '100%',
@@ -117,19 +130,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   header: {
-    fontSize: 32,
+    fontSize: 52,
+    fontWeight: '500',
     marginBottom: 20,
+    color: '#F4F9E9',
   },
   list: {
     margin: 20,
-  },
-  item: {
-    backgroundColor: '#f9c2ff',
-    padding: 20,
-    marginVertical: 8,
-    marginHorizontal: 16,
-  },
-  title: {
-    fontSize: 32,
+    height: '100%',
   },
 });

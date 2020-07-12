@@ -1,11 +1,12 @@
 import * as React from 'react';
-import {View, TextInput, Text, StyleSheet} from 'react-native';
+import {TextInput, Text, View, StyleSheet, Alert} from 'react-native';
 
 export default function PasswordItem({
   item: {id, website, username, password, editing},
   onChangeWebsite,
   onChangeUsername,
   onChangePassword,
+  onDelete,
 }) {
   const [hidePassword, setHidePassword] = React.useState(true);
   React.useEffect(() => {
@@ -13,11 +14,36 @@ export default function PasswordItem({
       setHidePassword(true);
     }
   }, [editing, hidePassword, id]);
+
+  const deleteAlert = () => {
+    Alert.alert(
+      'Are you sure you want to delete this password?',
+      'This action cannot be undone',
+      [
+        {
+          text: 'Delete',
+          onPress: onDelete,
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+    );
+  };
+  const cleanWebsite = (text) => {
+    // Remove protocol and everything after domain
+    const cleanText = text.split('//').pop().split('/')[0];
+    if (cleanText.length > 20) {
+      return cleanText.substring(0, 16) + '...';
+    }
+    return cleanText;
+  };
   return (
     <>
       <View style={styles.container}>
         {id === editing ? (
-          <>
+          <View>
             <TextInput
               style={styles.input}
               onChangeText={(text) => onChangeWebsite(text)}
@@ -36,9 +62,12 @@ export default function PasswordItem({
               onChangeText={(text) => onChangePassword(text)}
               value={password}
             />
-          </>
+            <Text style={styles.delete} onPress={deleteAlert}>
+              DELETE
+            </Text>
+          </View>
         ) : (
-          <Text style={styles.cover}>{website}</Text>
+          <Text style={styles.cover}>{cleanWebsite(website)}</Text>
         )}
       </View>
     </>
@@ -51,17 +80,31 @@ const styles = StyleSheet.create({
   },
   cover: {
     fontSize: 32,
-    backgroundColor: '#f9c2ff',
+    fontWeight: '600',
+    borderWidth: 5,
+    borderColor: '#F4F9E9',
+    borderRadius: 5,
+    backgroundColor: '#403F4C',
+    color: '#F4F9E9',
     padding: 20,
     marginVertical: 8,
   },
   input: {
-    backgroundColor: '#f9c2ff',
+    fontSize: 20,
+    backgroundColor: '#F4F9E9',
+    color: '#403F4C',
     padding: 20,
     marginVertical: 8,
     marginHorizontal: 16,
   },
-  title: {
+  delete: {
     fontSize: 32,
+    backgroundColor: '#CC2E28',
+    color: '#F4F9E9',
+    fontWeight: '800',
+    textAlign: 'center',
+    padding: 12,
+    marginVertical: 8,
+    marginHorizontal: 16,
   },
 });
