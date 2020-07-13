@@ -45,6 +45,7 @@ export default function Passwords() {
     const index = passwords.findIndex((item) => item.id === id);
     tempPasswords.splice(index, 1)[index];
     setPasswords(tempPasswords);
+    setCurrentEditing(null);
   };
 
   const renderItem = ({item}) => (
