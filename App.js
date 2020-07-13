@@ -16,6 +16,15 @@ const getData = async () => {
   }
 };
 
+const storeData = async (value) => {
+  try {
+    const jsonValue = JSON.stringify(value);
+    await AsyncStorage.setItem('@storage_Key', jsonValue);
+  } catch (e) {
+    // saving error
+  }
+};
+
 const Drawer = createDrawerNavigator();
 
 export default function App() {
@@ -39,8 +48,27 @@ export default function App() {
               status: 'OK',
               data: response[index],
             });
+          } else {
+            nodejs.channel.post('retrievedData', {status: 'FAIL'});
           }
-          nodejs.channel.post('retrievedData', {status: 'FAIL'});
+        });
+      },
+      this,
+    );
+    nodejs.channel.addListener(
+      'sendData',
+      ({website, username, password}) => {
+        getData().then((response) => {
+          if (response) {
+            storeData([
+              ...response,
+              {id: response.length, website, username, password},
+            ]).then(() => {
+              nodejs.channel.post('recievedData', {status: 'OK'});
+            });
+          } else {
+            nodejs.channel.post('recievedData', {status: 'FAIL'});
+          }
         });
       },
       this,
