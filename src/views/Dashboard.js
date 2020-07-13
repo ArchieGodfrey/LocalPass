@@ -42,15 +42,6 @@ const Dashboard = () => {
 
   React.useEffect(() => {
     getAddress();
-    // Add listeners for messages
-    nodejs.channel.addListener(
-      'message',
-      (msg) => {
-        // eslint-disable-next-line no-alert
-        alert(msg);
-      },
-      this,
-    );
     nodejs.channel.addListener(
       'startedServer',
       () => {

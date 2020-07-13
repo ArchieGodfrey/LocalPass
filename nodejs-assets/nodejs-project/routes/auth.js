@@ -52,12 +52,12 @@ router.post('/login', (req, res) => {
 
         config.REFRESH_TOKENS.push(refreshToken);
 
-        res.json({
+        return res.status(200).json({
           accessToken,
           refreshToken,
         });
       } else {
-        res.json({access: 'Access Denied'});
+        return res.status(403).json({access: 'Access Denied'});
       }
     });
   }

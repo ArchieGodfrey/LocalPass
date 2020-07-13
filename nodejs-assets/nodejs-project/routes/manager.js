@@ -1,47 +1,24 @@
 const express = require('express');
 const router = express.Router();
-
+const rn_bridge = require('rn-bridge');
 const middleware = require('../middleware/authenticateJWT');
 
-const books = [
-  {
-    author: 'Chinua Achebe',
-    country: 'Nigeria',
-    language: 'English',
-    pages: 209,
-    title: 'Things Fall Apart',
-    year: 1958,
-  },
-  {
-    author: 'Hans Christian Andersen',
-    country: 'Denmark',
-    language: 'Danish',
-    pages: 784,
-    title: 'Fairy tales',
-    year: 1836,
-  },
-  {
-    author: 'Dante Alighieri',
-    country: 'Italy',
-    language: 'Italian',
-    pages: 928,
-    title: 'The Divine Comedy',
-    year: 1315,
-  },
-];
+router.get('/:site', middleware.authenticateJWT, (req, res) => {
+  // Get site param
+  var site = req.params.site;
 
-router.get('/passwords', middleware.authenticateJWT, (req, res) => {
-  /*const {role} = req.user;
+  // Get data from app
+  rn_bridge.channel.post('getData', site);
 
-  if (role !== 'admin') {
-    return res.sendStatus(403);
-  }
-
-  const book = req.body;
-  books.push(book);
-
-  res.send('Book added successfully');*/
-  res.send('Password');
+  // Wait for data from app
+  rn_bridge.channel.on('retrievedData', (nativeResponse) => {
+    if (nativeResponse && nativeResponse.status === 'OK') {
+      // Data exists
+      return res.status(200).json(nativeResponse);
+    } else {
+      return res.status(404);
+    }
+  });
 });
 
 module.exports = router;

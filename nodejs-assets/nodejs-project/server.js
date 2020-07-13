@@ -8,6 +8,7 @@ let server;
 let tempStorage = '';
 
 // Require routes
+const home = require('./routes/home');
 const auth = require('./routes/auth');
 const manager = require('./routes/manager');
 
@@ -19,6 +20,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 // Setup routes
+app.use('/', home);
 app.use('/auth', auth);
 app.use('/manager', manager);
 
