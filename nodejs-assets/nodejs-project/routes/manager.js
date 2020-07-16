@@ -25,7 +25,7 @@ router.get('/:site', middleware.authenticateJWT, (req, res, next) => {
   });
 });
 
-router.post('/', middleware.authenticateJWT, (req, res) => {
+router.post('/', middleware.authenticateJWT, (req, res, next) => {
   // Get login data
   const {website, username, password} = req.body;
 
@@ -38,11 +38,15 @@ router.post('/', middleware.authenticateJWT, (req, res) => {
 
   // Wait for data from app
   rn_bridge.channel.on('recievedData', (nativeResponse) => {
-    if (nativeResponse && nativeResponse.status === 'OK') {
-      // Data exists
-      return res.status(200).json(nativeResponse);
-    } else {
-      return res.status(404);
+    try {
+      if (nativeResponse && nativeResponse.status === 'OK') {
+        // Data exists
+        return res.status(200).json(nativeResponse);
+      } else {
+        return res.status(404);
+      }
+    } catch {
+      next();
     }
   });
 });

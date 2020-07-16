@@ -17,7 +17,7 @@ const users = [
   },
 ];
 
-router.post('/login', (req, res) => {
+router.post('/login', (req, res, next) => {
   // Get response
   const {username} = req.body;
 
@@ -38,31 +38,36 @@ router.post('/login', (req, res) => {
 
     // Wait for user to respond on device
     rn_bridge.channel.on('accessStatus', (nativeResponse) => {
-      if (nativeResponse && nativeResponse.status === 'ACCEPTED') {
-        // generate an access token
-        const accessToken = jwt.sign(
-          {username: username},
-          config.ACCESS_SECRET,
-          {expiresIn: '20m'},
-        );
-        const refreshToken = jwt.sign(
-          {username: username},
-          config.REFRESH_SECRET,
-        );
+      try {
+        if (nativeResponse && nativeResponse.status === 'ACCEPTED') {
+          // generate an access token
+          const accessToken = jwt.sign(
+            {username: username},
+            config.ACCESS_SECRET,
+            {expiresIn: '20m'},
+          );
+          const refreshToken = jwt.sign(
+            {username: username},
+            config.REFRESH_SECRET,
+          );
 
-        config.REFRESH_TOKENS.push(refreshToken);
+          config.REFRESH_TOKENS.push(refreshToken);
 
-        return res.status(200).json({
-          accessToken,
-          refreshToken,
-        });
-      } else {
-        return res.status(403).json({access: 'Access Denied'});
+          return res.json({
+            accessToken,
+            refreshToken,
+          });
+        } else {
+          return res.status(403).json({access: 'Access Denied'});
+        }
+      } catch {
+        next();
       }
     });
   }
+});
 
-  /*if (user) {
+/*if (user) {
     // generate an access token
     const accessToken = jwt.sign(
       {username: user.username, role: user.role},
@@ -83,7 +88,6 @@ router.post('/login', (req, res) => {
   } else {
     res.send('Username or password incorrect');
   }*/
-});
 
 // Extend token
 router.post('/token', (req, res) => {
