@@ -48,16 +48,20 @@ export default function Passwords() {
     setCurrentEditing(null);
   };
 
+  const toggleEditing = (id) =>
+    currentEditing === id
+      ? setCurrentEditing(undefined)
+      : setCurrentEditing(id);
+
   const renderItem = ({item}) => (
-    <TouchableOpacity onPress={() => setCurrentEditing(item.id)}>
-      <PasswordItem
-        item={{...item, editing: currentEditing}}
-        onDelete={onDelete}
-        onChangeWebsite={(text) => onChangeValue(item.id, text, 'website')}
-        onChangeUsername={(text) => onChangeValue(item.id, text, 'username')}
-        onChangePassword={(text) => onChangeValue(item.id, text, 'password')}
-      />
-    </TouchableOpacity>
+    <PasswordItem
+      item={{...item, editing: currentEditing}}
+      onDelete={onDelete}
+      toggleEditing={() => toggleEditing(item.id)}
+      onChangeWebsite={(text) => onChangeValue(item.id, text, 'website')}
+      onChangeUsername={(text) => onChangeValue(item.id, text, 'username')}
+      onChangePassword={(text) => onChangeValue(item.id, text, 'password')}
+    />
   );
 
   React.useEffect(() => {
@@ -83,7 +87,6 @@ export default function Passwords() {
             storeData(noNew);
           }}>
           <View style={styles.inner}>
-            <Text style={styles.header}>Passwords</Text>
             <FlatList
               style={styles.list}
               data={passwords}
@@ -131,19 +134,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   inner: {
-    padding: 20,
+    paddingTop: 20,
   },
   save: {
     position: 'absolute',
   },
-  header: {
-    fontSize: 52,
-    fontWeight: '500',
-    marginBottom: 20,
-    color: '#F4F9E9',
-  },
   list: {
-    margin: 20,
-    marginBottom: 60,
+    marginHorizontal: 20,
   },
 });

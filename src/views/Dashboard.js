@@ -1,11 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
 import React from 'react';
 import {
   Alert,
@@ -80,16 +72,13 @@ const Dashboard = () => {
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.container}>
-        <Text style={styles.header} onPress={getAddress}>
-          Local Pass
-        </Text>
-        <Text style={styles.subheading}>{address}</Text>
+        <Text style={styles.heading}>{address}</Text>
         {address === 'Please connect to a Wifi connection' && (
           <Text style={styles.tryAgain}>Press here to try again</Text>
         )}
         <Text
           style={[
-            styles.subheading,
+            styles.heading,
             serverStatus === ServerStatusEnum.open
               ? styles.serverOpen
               : styles.serverClosed,
@@ -123,14 +112,7 @@ const styles = StyleSheet.create({
     marginTop: StatusBar.currentHeight || 0,
     backgroundColor: '#403F4C',
   },
-  header: {
-    fontSize: 52,
-    fontWeight: '500',
-    marginBottom: 20,
-    color: '#F4F9E9',
-    textAlign: 'center',
-  },
-  subheading: {
+  heading: {
     fontSize: 40,
     fontWeight: '500',
     marginBottom: 20,

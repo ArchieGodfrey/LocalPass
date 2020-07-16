@@ -1,5 +1,12 @@
 import * as React from 'react';
-import {TextInput, Text, View, StyleSheet, Alert} from 'react-native';
+import {
+  TextInput,
+  Text,
+  View,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 
 export default function PasswordItem({
   item: {id, website, username, password, editing},
@@ -7,6 +14,7 @@ export default function PasswordItem({
   onChangeUsername,
   onChangePassword,
   onDelete,
+  toggleEditing,
 }) {
   const [hidePassword, setHidePassword] = React.useState(true);
   React.useEffect(() => {
@@ -40,37 +48,36 @@ export default function PasswordItem({
     return cleanText;
   };
   return (
-    <>
-      <View style={styles.container}>
-        {id === editing ? (
-          <View>
-            <TextInput
-              style={styles.input}
-              onChangeText={(text) => onChangeWebsite(text)}
-              value={website}
-            />
-            <TextInput
-              style={styles.input}
-              onChangeText={(text) => onChangeUsername(text)}
-              value={username}
-            />
-            <TextInput
-              style={styles.input}
-              onFocus={() => setHidePassword(false)}
-              onBlur={() => setHidePassword(true)}
-              secureTextEntry={hidePassword}
-              onChangeText={(text) => onChangePassword(text)}
-              value={password}
-            />
-            <Text style={styles.delete} onPress={deleteAlert}>
-              DELETE
-            </Text>
-          </View>
-        ) : (
-          <Text style={styles.cover}>{cleanWebsite(website)}</Text>
-        )}
-      </View>
-    </>
+    <TouchableOpacity style={styles.container} onPress={toggleEditing}>
+      <Text style={[styles.cover, id === editing && styles.selected]}>
+        {cleanWebsite(website)}
+      </Text>
+      {id === editing && (
+        <View>
+          <TextInput
+            style={styles.input}
+            onChangeText={(text) => onChangeWebsite(text)}
+            value={website}
+          />
+          <TextInput
+            style={styles.input}
+            onChangeText={(text) => onChangeUsername(text)}
+            value={username}
+          />
+          <TextInput
+            style={styles.input}
+            onFocus={() => setHidePassword(false)}
+            onBlur={() => setHidePassword(true)}
+            secureTextEntry={hidePassword}
+            onChangeText={(text) => onChangePassword(text)}
+            value={password}
+          />
+          <Text style={styles.delete} onPress={deleteAlert}>
+            DELETE
+          </Text>
+        </View>
+      )}
+    </TouchableOpacity>
   );
 }
 
@@ -88,6 +95,9 @@ const styles = StyleSheet.create({
     color: '#F4F9E9',
     padding: 20,
     marginVertical: 8,
+  },
+  selected: {
+    backgroundColor: '#FF6933',
   },
   input: {
     fontSize: 20,
