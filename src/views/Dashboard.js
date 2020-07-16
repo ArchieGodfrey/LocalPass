@@ -48,25 +48,6 @@ const Dashboard = () => {
       },
       this,
     );
-    nodejs.channel.addListener(
-      'requestAccess',
-      (msg) => {
-        Alert.alert('Access Requested', msg, [
-          {
-            text: 'Accept',
-            onPress: () =>
-              nodejs.channel.post('accessStatus', {status: 'ACCEPTED'}),
-          },
-          {
-            text: 'Cancel',
-            style: 'cancel',
-            onPress: () =>
-              nodejs.channel.post('accessStatus', {status: 'DENIED'}),
-          },
-        ]);
-      },
-      this,
-    );
   });
   return (
     <>
