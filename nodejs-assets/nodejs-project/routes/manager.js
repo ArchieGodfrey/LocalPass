@@ -3,7 +3,7 @@ const router = express.Router();
 const rn_bridge = require('rn-bridge');
 const middleware = require('../middleware/authenticateJWT');
 
-router.get('/:site', middleware.authenticateJWT, (req, res) => {
+router.get('/:site', middleware.authenticateJWT, (req, res, next) => {
   // Get site param
   var site = req.params.site;
 
@@ -12,11 +12,15 @@ router.get('/:site', middleware.authenticateJWT, (req, res) => {
 
   // Wait for data from app
   rn_bridge.channel.on('retrievedData', (nativeResponse) => {
-    if (nativeResponse && nativeResponse.status === 'OK') {
-      // Data exists
-      return res.status(200).json(nativeResponse);
-    } else {
-      return res.status(404);
+    try {
+      if (nativeResponse && nativeResponse.status === 'OK') {
+        // Data exists
+        return res.json(nativeResponse);
+      } else {
+        return res.status(404);
+      }
+    } catch {
+      next();
     }
   });
 });
