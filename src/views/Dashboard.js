@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Alert,
+  Animated,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -23,6 +23,12 @@ const Dashboard = () => {
   const [serverStatus, setServerStatus] = React.useState(
     ServerStatusEnum.closed,
   );
+
+  const colorAnimate = React.useRef(new Animated.Value(0)).current;
+  let backgroundColor = colorAnimate.interpolate({
+    inputRange: [0, 255],
+    outputRange: ['rgba(255, 105, 51, 1)', 'rgba(97, 139, 74, 1)'],
+  });
 
   const getAddress = () => {
     NetworkInfo.getIPAddress().then((ipAddress) => {
@@ -53,34 +59,49 @@ const Dashboard = () => {
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.container}>
-        <Text style={styles.heading}>{address}</Text>
-        {address === 'Please connect to a Wifi connection' && (
-          <Text style={styles.tryAgain}>Press here to try again</Text>
+        <Animated.View style={[styles.banner, {backgroundColor}]}>
+          <Text style={styles.subheading}>Server Address</Text>
+          <Text style={styles.heading}>{address}</Text>
+          {address === 'Please connect to a Wifi connection' && (
+            <Text style={styles.tryAgain}>Press here to try again</Text>
+          )}
+          <Text style={styles.subheading}>Server Status</Text>
+          <Text style={styles.heading}>{serverStatus}</Text>
+        </Animated.View>
+        {serverStatus === ServerStatusEnum.closed && (
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={() => {
+              nodejs.channel.post('startServer', {address});
+              Animated.timing(colorAnimate, {
+                toValue: 255,
+                duration: 1500,
+                useNativeDriver: false,
+              }).start();
+            }}>
+            <Text style={styles.buttonText}>Start Server</Text>
+          </TouchableOpacity>
         )}
-        <Text
-          style={[
-            styles.heading,
-            serverStatus === ServerStatusEnum.open
-              ? styles.serverOpen
-              : styles.serverClosed,
-          ]}>
-          {serverStatus}
-        </Text>
-        <TouchableOpacity
-          style={styles.startButton}
-          onPress={() => {
-            nodejs.channel.post('startServer', {address});
-          }}>
-          <Text style={styles.buttonText}>Start Server</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => {
-            setServerStatus(ServerStatusEnum.closing);
-            nodejs.channel.post('closeServer');
-          }}>
-          <Text style={styles.buttonText}>Close Server</Text>
-        </TouchableOpacity>
+        {serverStatus === ServerStatusEnum.closing && (
+          <TouchableOpacity style={styles.closingButton}>
+            <Text style={styles.buttonText}>Waiting...</Text>
+          </TouchableOpacity>
+        )}
+        {serverStatus === ServerStatusEnum.open && (
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => {
+              setServerStatus(ServerStatusEnum.closing);
+              nodejs.channel.post('closeServer');
+              Animated.timing(colorAnimate, {
+                toValue: 0,
+                duration: 1500,
+                useNativeDriver: false,
+              }).start();
+            }}>
+            <Text style={styles.buttonText}>Close Server</Text>
+          </TouchableOpacity>
+        )}
       </SafeAreaView>
     </>
   );
@@ -90,8 +111,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    marginTop: StatusBar.currentHeight || 0,
+    padding: 20,
     backgroundColor: '#403F4C',
+  },
+  banner: {
+    width: '100%',
+    borderBottomWidth: 3,
+    borderColor: '#F4F9E9',
+    marginBottom: 20,
+  },
+  openBanner: {
+    backgroundColor: '#618B4A',
+  },
+  closedBanner: {
+    backgroundColor: '#FF6933',
   },
   heading: {
     fontSize: 40,
@@ -100,6 +133,15 @@ const styles = StyleSheet.create({
     color: '#F4F9E9',
     textAlign: 'center',
   },
+  subheading: {
+    fontSize: 30,
+    fontWeight: '500',
+    marginTop: 20,
+    marginBottom: 10,
+    color: '#F4F9E9',
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
   tryAgain: {
     fontSize: 30,
     fontWeight: '500',
@@ -107,21 +149,17 @@ const styles = StyleSheet.create({
     color: '#FF6933',
     textAlign: 'center',
   },
-  serverOpen: {
-    color: '#618B4A',
-  },
-  serverClosed: {
-    color: '#CC2E28',
-  },
   startButton: {
     borderRadius: 5,
-    backgroundColor: 'green',
-    marginTop: 50,
+    backgroundColor: '#618B4A',
+  },
+  closingButton: {
+    borderRadius: 5,
+    backgroundColor: '#ff8356',
   },
   closeButton: {
     borderRadius: 5,
     backgroundColor: '#FF6933',
-    marginTop: 50,
   },
   buttonText: {
     width: 250,
