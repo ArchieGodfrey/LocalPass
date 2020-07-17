@@ -35,6 +35,7 @@ router.post('/login', (req, res, next) => {
       'requestAccess',
       `User: ${username} is requesting access`,
     );
+    rn_bridge.channel.post('log', 'POST Request: Extension access requested');
 
     // Wait for user to respond on device
     rn_bridge.channel.on('accessStatus', (nativeResponse) => {
@@ -52,15 +53,17 @@ router.post('/login', (req, res, next) => {
           );
 
           config.REFRESH_TOKENS.push(refreshToken);
-
+          rn_bridge.channel.post('log', 'Server Response: Access accepted');
           return res.json({
             accessToken,
             refreshToken,
           });
         } else {
+          rn_bridge.channel.post('log', 'Server Response: Aceess Denied');
           return res.status(403).json({access: 'Access Denied'});
         }
       } catch {
+        rn_bridge.channel.post('log', 'Server Response: Error getting access');
         next();
       }
     });

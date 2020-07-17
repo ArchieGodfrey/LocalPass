@@ -4,106 +4,132 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
-  StatusBar,
   TouchableOpacity,
 } from 'react-native';
 import {NetworkInfo} from 'react-native-network-info';
 import nodejs from 'nodejs-mobile-react-native';
+import LogList from '../components/LogList';
 
 const ServerStatusEnum = {
-  open: 'Server Opened',
-  closing: 'Server Closing',
-  closed: 'Server Closed',
+  open: 'Open Server',
+  closing: 'Closing Server',
+  close: 'Close Server',
+  noAddress: 'Try Again',
 };
 
 const Dashboard = () => {
-  const [address, setAddress] = React.useState(
-    'Please connect to a Wifi connection',
-  );
+  const [showLog, setShowLog] = React.useState(false);
+  const [address, setAddress] = React.useState(undefined);
   const [serverStatus, setServerStatus] = React.useState(
-    ServerStatusEnum.closed,
+    ServerStatusEnum.noAddress,
   );
 
+  // Animations
+  const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
   const colorAnimate = React.useRef(new Animated.Value(0)).current;
-  let backgroundColor = colorAnimate.interpolate({
+  const backgroundColor = colorAnimate.interpolate({
     inputRange: [0, 255],
     outputRange: ['rgba(255, 105, 51, 1)', 'rgba(97, 139, 74, 1)'],
   });
+  const inverseColor = colorAnimate.interpolate({
+    inputRange: [0, 128, 255],
+    outputRange: [
+      'rgba(97, 139, 74, 1)',
+      'rgba(255, 131, 86, 1)',
+      'rgba(255, 105, 51, 1)',
+    ],
+  });
+  const animate = (value) => {
+    Animated.timing(colorAnimate, {
+      toValue: value,
+      duration: 1500,
+      useNativeDriver: false,
+    }).start();
+  };
 
+  // TODO: Server timeouts
+  let serverTimeout;
+  const setServerTimeout = () => {
+    serverTimeout = setTimeout(() => {
+      setServerStatus(ServerStatusEnum.noAddress);
+      animate(0);
+    }, 3000);
+  };
+
+  // Get IP address
   const getAddress = () => {
-    NetworkInfo.getIPAddress().then((ipAddress) => {
-      // Create server
-      nodejs.start('server.js');
-      setAddress(ipAddress);
-    });
+    NetworkInfo.getIPAddress()
+      .then((ipAddress) => {
+        setAddress(ipAddress);
+        setServerStatus(ServerStatusEnum.open);
+      })
+      .catch(() => {
+        setServerTimeout();
+      });
   };
 
   React.useEffect(() => {
+    // Create server
+    nodejs.start('server.js');
     getAddress();
     nodejs.channel.addListener(
       'startedServer',
       () => {
-        setServerStatus('Server Opened');
+        //clearTimeout(serverTimeout);
+        setServerStatus(ServerStatusEnum.close);
+        animate(255);
       },
       this,
     );
     nodejs.channel.addListener(
       'closedServer',
       () => {
-        setServerStatus('Server Closed');
+        setServerStatus(ServerStatusEnum.open);
+        animate(0);
       },
       this,
     );
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView style={styles.container}>
-        <Animated.View style={[styles.banner, {backgroundColor}]}>
-          <Text style={styles.subheading}>Server Address</Text>
-          <Text style={styles.heading}>{address}</Text>
-          {address === 'Please connect to a Wifi connection' && (
-            <Text style={styles.tryAgain}>Press here to try again</Text>
-          )}
-          <Text style={styles.subheading}>Server Status</Text>
-          <Text style={styles.heading}>{serverStatus}</Text>
-        </Animated.View>
-        {serverStatus === ServerStatusEnum.closed && (
-          <TouchableOpacity
-            style={styles.startButton}
-            onPress={() => {
+    <SafeAreaView style={styles.container}>
+      <Animated.View style={[styles.banner, {backgroundColor}]}>
+        <Text style={styles.subheading}>Server Address</Text>
+        {address && <Text style={styles.heading}>{address}</Text>}
+        {serverStatus === ServerStatusEnum.noAddress && (
+          <Text style={[styles.heading, styles.tryAgain]}>
+            A Wifi Connection is Required
+          </Text>
+        )}
+      </Animated.View>
+      <AnimatedTouchable
+        style={[styles.button, {backgroundColor: inverseColor}]}
+        onPress={() => {
+          animate(128);
+          switch (serverStatus) {
+            case ServerStatusEnum.open:
+              //setServerTimeout();
               nodejs.channel.post('startServer', {address});
-              Animated.timing(colorAnimate, {
-                toValue: 255,
-                duration: 1500,
-                useNativeDriver: false,
-              }).start();
-            }}>
-            <Text style={styles.buttonText}>Start Server</Text>
-          </TouchableOpacity>
-        )}
-        {serverStatus === ServerStatusEnum.closing && (
-          <TouchableOpacity style={styles.closingButton}>
-            <Text style={styles.buttonText}>Waiting...</Text>
-          </TouchableOpacity>
-        )}
-        {serverStatus === ServerStatusEnum.open && (
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => {
+              break;
+            case ServerStatusEnum.close:
               setServerStatus(ServerStatusEnum.closing);
               nodejs.channel.post('closeServer');
-              Animated.timing(colorAnimate, {
-                toValue: 0,
-                duration: 1500,
-                useNativeDriver: false,
-              }).start();
-            }}>
-            <Text style={styles.buttonText}>Close Server</Text>
-          </TouchableOpacity>
-        )}
-      </SafeAreaView>
-    </>
+              break;
+            case ServerStatusEnum.noAddress:
+              getAddress();
+              break;
+          }
+        }}>
+        <Text style={styles.buttonText}>{serverStatus}</Text>
+      </AnimatedTouchable>
+      <TouchableOpacity
+        style={[styles.button, styles.serverLogButton]}
+        onPress={() => setShowLog(!showLog)}>
+        <Text style={styles.buttonText}>{showLog ? 'Hide' : 'Show'} Log</Text>
+      </TouchableOpacity>
+      <LogList show={showLog} />
+    </SafeAreaView>
   );
 };
 
@@ -119,12 +145,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
     borderColor: '#F4F9E9',
     marginBottom: 20,
-  },
-  openBanner: {
-    backgroundColor: '#618B4A',
-  },
-  closedBanner: {
-    backgroundColor: '#FF6933',
   },
   heading: {
     fontSize: 40,
@@ -144,22 +164,9 @@ const styles = StyleSheet.create({
   },
   tryAgain: {
     fontSize: 30,
-    fontWeight: '500',
-    marginBottom: 20,
-    color: '#FF6933',
-    textAlign: 'center',
   },
-  startButton: {
+  button: {
     borderRadius: 5,
-    backgroundColor: '#618B4A',
-  },
-  closingButton: {
-    borderRadius: 5,
-    backgroundColor: '#ff8356',
-  },
-  closeButton: {
-    borderRadius: 5,
-    backgroundColor: '#FF6933',
   },
   buttonText: {
     width: 250,
@@ -168,6 +175,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#F4F9E9',
     textAlign: 'center',
+  },
+  serverLogButton: {
+    marginTop: 20,
+    backgroundColor: 'grey',
   },
 });
 

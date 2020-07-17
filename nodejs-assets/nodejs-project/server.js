@@ -31,17 +31,21 @@ rn_bridge.channel.on('startServer', (req) => {
   if (req.address) {
     if (server) {
       server.close();
+      server = undefined;
     }
     server = app.listen(8080, req.address);
     rn_bridge.channel.post('startedServer');
+    rn_bridge.channel.post('log', 'Native Request: Started Server');
   }
 });
 
 // Close server
 rn_bridge.channel.on('closeServer', () => {
+  rn_bridge.channel.post('log', 'Native Request: Close Server');
   if (server) {
     server.close(() => {
       rn_bridge.channel.post('closedServer', '');
+      rn_bridge.channel.post('log', 'Native Request: Closed Server');
     });
     server = undefined;
   }
@@ -52,5 +56,6 @@ rn_bridge.channel.on('message', (req) => {
   if (req.password) {
     tempStorage = req.password;
     rn_bridge.channel.send('Password Recieved');
+    rn_bridge.channel.post('log', 'Native Request: Password Recieved');
   }
 });
