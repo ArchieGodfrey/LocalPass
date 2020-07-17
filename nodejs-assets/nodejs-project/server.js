@@ -5,7 +5,6 @@ const app = express();
 
 // Temp vars
 let server;
-let tempStorage = '';
 
 // Require routes
 const home = require('./routes/home');
@@ -48,14 +47,5 @@ rn_bridge.channel.on('closeServer', () => {
       rn_bridge.channel.post('log', 'Native Request: Closed Server');
     });
     server = undefined;
-  }
-});
-
-rn_bridge.channel.on('message', (req) => {
-  // Send a password to server
-  if (req.password) {
-    tempStorage = req.password;
-    rn_bridge.channel.send('Password Recieved');
-    rn_bridge.channel.post('log', 'Native Request: Password Recieved');
   }
 });
