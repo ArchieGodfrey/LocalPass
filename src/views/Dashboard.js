@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import {NetworkInfo} from 'react-native-network-info';
 import nodejs from 'nodejs-mobile-react-native';
-import LogList from '../components/LogList';
+// import LogList from '../components/LogList';
 
 const ServerStatusEnum = {
   open: 'Open Server',
@@ -18,7 +18,7 @@ const ServerStatusEnum = {
 };
 
 const Dashboard = () => {
-  const [showLog, setShowLog] = React.useState(false);
+  // const [showLog, setShowLog] = React.useState(false);
   const [address, setAddress] = React.useState(undefined);
   const [serverStatus, setServerStatus] = React.useState(
     ServerStatusEnum.noAddress,
@@ -47,25 +47,24 @@ const Dashboard = () => {
     }).start();
   };
 
-  // TODO: Server timeouts
-  let serverTimeout;
-  const setServerTimeout = () => {
-    serverTimeout = setTimeout(() => {
-      setServerStatus(ServerStatusEnum.noAddress);
-      animate(0);
+  const setServerTimeout = () =>
+    setTimeout(() => {
+      if (serverStatus === ServerStatusEnum.noAddress) {
+        animate(0);
+        getAddress();
+      }
     }, 3000);
-  };
 
   // Get IP address
   const getAddress = () => {
-    NetworkInfo.getIPAddress()
-      .then((ipAddress) => {
+    NetworkInfo.getIPAddress().then((ipAddress) => {
+      if (ipAddress) {
         setAddress(ipAddress);
         setServerStatus(ServerStatusEnum.open);
-      })
-      .catch(() => {
+      } else {
         setServerTimeout();
-      });
+      }
+    });
   };
 
   React.useEffect(() => {
@@ -75,7 +74,6 @@ const Dashboard = () => {
     nodejs.channel.addListener(
       'startedServer',
       () => {
-        //clearTimeout(serverTimeout);
         setServerStatus(ServerStatusEnum.close);
         animate(255);
       },
@@ -109,7 +107,6 @@ const Dashboard = () => {
           animate(128);
           switch (serverStatus) {
             case ServerStatusEnum.open:
-              //setServerTimeout();
               nodejs.channel.post('startServer', {address});
               break;
             case ServerStatusEnum.close:
