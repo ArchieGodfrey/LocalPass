@@ -123,12 +123,12 @@ const Dashboard = () => {
         }}>
         <Text style={styles.buttonText}>{serverStatus}</Text>
       </AnimatedTouchable>
-      <TouchableOpacity
+      {/* {<TouchableOpacity
         style={[styles.button, styles.serverLogButton]}
         onPress={() => setShowLog(!showLog)}>
         <Text style={styles.buttonText}>{showLog ? 'Hide' : 'Show'} Log</Text>
       </TouchableOpacity>
-      <LogList show={showLog} />
+      <LogList show={showLog} />} */}
     </SafeAreaView>
   );
 };

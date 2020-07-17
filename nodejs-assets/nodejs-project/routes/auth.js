@@ -53,17 +53,14 @@ router.post('/login', (req, res, next) => {
           );
 
           config.REFRESH_TOKENS.push(refreshToken);
-          rn_bridge.channel.post('log', 'Server Response: Access accepted');
           return res.json({
             accessToken,
             refreshToken,
           });
         } else {
-          rn_bridge.channel.post('log', 'Server Response: Aceess Denied');
           return res.status(403).json({access: 'Access Denied'});
         }
       } catch {
-        rn_bridge.channel.post('log', 'Server Response: Error getting access');
         next();
       }
     });

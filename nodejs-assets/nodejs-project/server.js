@@ -34,17 +34,14 @@ rn_bridge.channel.on('startServer', (req) => {
     }
     server = app.listen(8080, req.address);
     rn_bridge.channel.post('startedServer');
-    rn_bridge.channel.post('log', 'Native Request: Started Server');
   }
 });
 
 // Close server
 rn_bridge.channel.on('closeServer', () => {
-  rn_bridge.channel.post('log', 'Native Request: Close Server');
   if (server) {
     server.close(() => {
       rn_bridge.channel.post('closedServer', '');
-      rn_bridge.channel.post('log', 'Native Request: Closed Server');
     });
     server = undefined;
   }
