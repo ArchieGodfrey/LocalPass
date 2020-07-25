@@ -20,7 +20,7 @@ const ServerStatusEnum = {
   noAddress: 'Try Again',
 };
 
-const Dashboard = () => {
+export default function Dashboard({nav}) {
   // const [showLog, setShowLog] = React.useState(false);
   const [address, setAddress] = React.useState(undefined);
   const [serverStatus, setServerStatus] = React.useState(
@@ -58,6 +58,10 @@ const Dashboard = () => {
     }).start();
   };
 
+  // Change title in drawer
+  const updateDrawer = (title) =>
+    nav.setOptions({drawerLabel: `Status - ${title}`});
+
   const setServerTimeout = () =>
     setTimeout(() => {
       if (serverStatus === ServerStatusEnum.noAddress) {
@@ -93,6 +97,7 @@ const Dashboard = () => {
       'startedServer',
       () => {
         setServerStatus(ServerStatusEnum.close);
+        updateDrawer('Online');
         animate(255);
       },
       this,
@@ -101,6 +106,7 @@ const Dashboard = () => {
       'closedServer',
       () => {
         setServerStatus(ServerStatusEnum.open);
+        updateDrawer('Offline');
         animate(0);
       },
       this,
@@ -129,6 +135,7 @@ const Dashboard = () => {
               break;
             case ServerStatusEnum.close:
               setServerStatus(ServerStatusEnum.closing);
+              updateDrawer('Closing');
               nodejs.channel.post('closeServer');
               break;
             case ServerStatusEnum.noAddress:
@@ -157,7 +164,7 @@ const Dashboard = () => {
       </View>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -216,5 +223,3 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
 });
-
-export default Dashboard;
