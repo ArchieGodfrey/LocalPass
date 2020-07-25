@@ -3,7 +3,7 @@ const router = express.Router();
 const rn_bridge = require('rn-bridge');
 const middleware = require('../middleware/index');
 
-router.post('/:site', middleware.authenticateJWT, (req, res, next) => {
+router.post('/logins/:site', middleware.authenticateJWT, (req, res, next) => {
   const {payload} = req.body;
   // Get site param
   var site = req.params.site;
@@ -29,11 +29,12 @@ router.post('/:site', middleware.authenticateJWT, (req, res, next) => {
   });
 });
 
-router.post('/logins', middleware.authenticateJWT, (req, res, next) => {
+router.post('/', middleware.authenticateJWT, (req, res, next) => {
   // Get login data
-  const {website, username, password} = req.body;
+  const {decryptedData} = req.body;
+  const {website, username, password} = decryptedData;
 
-  if (!(website && username && password)) {
+  if (decryptedData && !(website && username && password)) {
     return res.sendStatus(400);
   }
 
@@ -48,7 +49,7 @@ router.post('/logins', middleware.authenticateJWT, (req, res, next) => {
         // Data exists
         return res.status(200).json(nativeResponse);
       } else {
-        return res.status(500);
+        return res.sendStatus(500);
       }
     } catch {
       next();

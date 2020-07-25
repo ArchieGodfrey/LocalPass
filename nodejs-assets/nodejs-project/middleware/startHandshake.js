@@ -8,14 +8,23 @@ const {publicKey, privateKey} = crypto.generateKeyPairSync('rsa', {
 });
 
 const startHandshake = (req, res, next) => {
-  const {encrypted, iv, aesKey} = req.body;
+  const {encrypted, iv, aesKey, initial} = req.body;
 
   // 1) Prepare RSA Public key to be exported
   const exportedKey = publicKey
     .export({type: 'spki', format: 'der'})
     .toString('base64');
 
+  // 2) Attach to the request to be sent later
   req.body.publicKey = exportedKey;
+
+  // 3) If initial, encrypted payload to come
+  if (initial) {
+    return res.json({
+      publicKey: exportedKey,
+      status: 'OK',
+    });
+  }
 
   if (encrypted && aesKey) {
     // 1) Convert AES Key and iv strings to buffers
@@ -38,7 +47,6 @@ const startHandshake = (req, res, next) => {
         encrypted[key],
       );
     });
-
     req.body.decryptedData = decryptedAESData;
   }
   next();
