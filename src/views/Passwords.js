@@ -7,27 +7,9 @@ import {
   StatusBar,
   TouchableOpacity,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import {getData, storeData} from '../helpers/AsyncStorage';
 import PasswordItem from '../components/PasswordItem';
 import NewItem from '../components/NewItem';
-
-const storeData = async (value) => {
-  try {
-    const jsonValue = JSON.stringify(value);
-    await AsyncStorage.setItem('@storage_Key', jsonValue);
-  } catch (e) {
-    // saving error
-  }
-};
-
-const getData = async () => {
-  try {
-    const jsonValue = await AsyncStorage.getItem('@storage_Key');
-    return jsonValue != null ? JSON.parse(jsonValue) : null;
-  } catch (e) {
-    // error reading value
-  }
-};
 
 export default function Passwords() {
   const [passwords, setPasswords] = React.useState([]);
@@ -64,7 +46,7 @@ export default function Passwords() {
   );
 
   React.useEffect(() => {
-    getData().then((value) => {
+    getData('passwords').then((value) => {
       if (value) {
         setPasswords(value);
       }
@@ -72,53 +54,50 @@ export default function Passwords() {
   }, []);
 
   return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView style={styles.container}>
-        <TouchableOpacity
-          activeOpacity={0}
-          style={styles.background}
-          onPress={() => {
-            setCurrentEditing(null);
-            const noNew = [...passwords].filter(
-              (password) => password.website !== 'New Password',
-            );
-            storeData(noNew);
-          }}>
-          <View style={styles.inner}>
-            <FlatList
-              style={styles.list}
-              data={passwords}
-              renderItem={renderItem}
-              keyExtractor={(item) => item.id}
-              extraData={currentEditing}
-              ListFooterComponent={
-                <>
-                  <NewItem
-                    title="Add"
-                    onPress={() =>
-                      setPasswords([
-                        ...passwords,
-                        {id: passwords.length, website: 'New Password'},
-                      ])
-                    }
-                  />
-                  <NewItem
-                    title="Import"
-                    onPress={() =>
-                      setPasswords([
-                        ...passwords,
-                        {id: passwords.length, website: 'New Password'},
-                      ])
-                    }
-                  />
-                </>
-              }
-            />
-          </View>
-        </TouchableOpacity>
-      </SafeAreaView>
-    </>
+    <SafeAreaView style={styles.container}>
+      <TouchableOpacity
+        activeOpacity={0}
+        style={styles.background}
+        onPress={() => {
+          setCurrentEditing(null);
+          const noNew = [...passwords].filter(
+            (password) => password.website !== 'New Password',
+          );
+          storeData('passwords', noNew);
+        }}>
+        <View style={styles.inner}>
+          <FlatList
+            style={styles.list}
+            data={passwords}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id.toString()}
+            extraData={currentEditing}
+            ListFooterComponent={
+              <>
+                <NewItem
+                  title="Add"
+                  onPress={() =>
+                    setPasswords([
+                      ...passwords,
+                      {id: passwords.length, website: 'New Password'},
+                    ])
+                  }
+                />
+                <NewItem
+                  title="Import"
+                  onPress={() =>
+                    setPasswords([
+                      ...passwords,
+                      {id: passwords.length, website: 'New Password'},
+                    ])
+                  }
+                />
+              </>
+            }
+          />
+        </View>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 

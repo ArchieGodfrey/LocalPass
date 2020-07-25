@@ -1,25 +1,7 @@
 import * as React from 'react';
 import {View, Alert} from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import {getData, storeData} from '../helpers/AsyncStorage';
 import nodejs from 'nodejs-mobile-react-native';
-
-const getData = async () => {
-  try {
-    const jsonValue = await AsyncStorage.getItem('@storage_Key');
-    return jsonValue != null ? JSON.parse(jsonValue) : null;
-  } catch (e) {
-    // error reading value
-  }
-};
-
-const storeData = async (value) => {
-  try {
-    const jsonValue = JSON.stringify(value);
-    await AsyncStorage.setItem('@storage_Key', jsonValue);
-  } catch (e) {
-    // saving error
-  }
-};
 
 export default function Listeners() {
   React.useEffect(() => {
@@ -54,7 +36,7 @@ export default function Listeners() {
     nodejs.channel.addListener(
       'getData',
       (website) => {
-        getData().then((response) => {
+        getData('passwords').then((response) => {
           const index = response.findIndex((item) => item.website === website);
           if (index > -1) {
             nodejs.channel.post('retrievedData', response[index]);
@@ -68,9 +50,9 @@ export default function Listeners() {
     nodejs.channel.addListener(
       'sendData',
       ({website, username, password}) => {
-        getData().then((response) => {
+        getData('passwords').then((response) => {
           if (response) {
-            storeData([
+            storeData('passwords', [
               ...response,
               {id: response.length, website, username, password},
             ]).then(() => {

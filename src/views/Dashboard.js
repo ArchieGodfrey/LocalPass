@@ -1,13 +1,16 @@
 import React from 'react';
 import {
+  View,
   Animated,
   SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  Switch,
 } from 'react-native';
 import {NetworkInfo} from 'react-native-network-info';
 import nodejs from 'nodejs-mobile-react-native';
+import {getData, storeData} from '../helpers/AsyncStorage';
 // import LogList from '../components/LogList';
 
 const ServerStatusEnum = {
@@ -23,6 +26,14 @@ const Dashboard = () => {
   const [serverStatus, setServerStatus] = React.useState(
     ServerStatusEnum.noAddress,
   );
+
+  // Auto start server
+  const [isEnabled, setIsEnabled] = React.useState(false);
+  const toggleSwitch = () =>
+    setIsEnabled((previousState) => {
+      storeData('autoStart', !previousState);
+      return !previousState;
+    });
 
   // Animations
   const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -61,6 +72,13 @@ const Dashboard = () => {
       if (ipAddress) {
         setAddress(ipAddress);
         setServerStatus(ServerStatusEnum.open);
+        // Check auto start
+        getData('autoStart').then((data) => {
+          if (data) {
+            setIsEnabled(true);
+            nodejs.channel.post('startServer', {address: ipAddress});
+          }
+        });
       } else {
         setServerTimeout();
       }
@@ -126,6 +144,17 @@ const Dashboard = () => {
         <Text style={styles.buttonText}>{showLog ? 'Hide' : 'Show'} Log</Text>
       </TouchableOpacity>
       <LogList show={showLog} />} */}
+      <View style={styles.row}>
+        <Text style={styles.heading}>Auto-Start</Text>
+        <Switch
+          thumbColor="F4F9E9"
+          trackColor={{false: '#FF6933', true: '#618B4A'}}
+          ios_backgroundColor="#FF6933"
+          onValueChange={toggleSwitch}
+          value={isEnabled}
+          style={styles.switch}
+        />
+      </View>
     </SafeAreaView>
   );
 };
@@ -136,6 +165,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#403F4C',
+  },
+  row: {
+    flexDirection: 'row',
+    marginTop: 20,
   },
   banner: {
     width: '100%',
@@ -176,6 +209,11 @@ const styles = StyleSheet.create({
   serverLogButton: {
     marginTop: 20,
     backgroundColor: 'grey',
+  },
+  switch: {
+    transform: [{scaleX: 1.2}, {scaleY: 1.2}],
+    marginTop: 7,
+    marginLeft: 20,
   },
 });
 
