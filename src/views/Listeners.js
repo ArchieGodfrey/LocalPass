@@ -57,10 +57,7 @@ export default function Listeners() {
         getData().then((response) => {
           const index = response.findIndex((item) => item.website === website);
           if (index > -1) {
-            nodejs.channel.post('retrievedData', {
-              status: 'OK',
-              data: response[index],
-            });
+            nodejs.channel.post('retrievedData', response[index]);
           } else {
             nodejs.channel.post('retrievedData', {status: 'FAIL'});
           }

@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const rn_bridge = require('rn-bridge');
-const middleware = require('../middleware/authenticateJWT');
 
-router.get('/:site', middleware.authenticateJWT, (req, res, next) => {
+router.post('/:site', (req, res, next) => {
+  const {payload} = req.body;
   // Get site param
   var site = req.params.site;
 
@@ -14,11 +14,13 @@ router.get('/:site', middleware.authenticateJWT, (req, res, next) => {
   // Wait for data from app
   rn_bridge.channel.on('retrievedData', (nativeResponse) => {
     try {
-      if (nativeResponse && nativeResponse.status === 'OK') {
+      if (nativeResponse && nativeResponse.password) {
         // Data exists
-        return res.json(nativeResponse);
+        delete nativeResponse.id;
+        req.body.payload = {...payload, ...nativeResponse};
+        next();
       } else {
-        return res.status(404);
+        return res.sendStatus(404);
       }
     } catch {
       next();
@@ -26,12 +28,12 @@ router.get('/:site', middleware.authenticateJWT, (req, res, next) => {
   });
 });
 
-router.post('/', middleware.authenticateJWT, (req, res, next) => {
+router.post('/logins', (req, res, next) => {
   // Get login data
   const {website, username, password} = req.body;
 
   if (!(website && username && password)) {
-    return res.status(400);
+    return res.sendStatus(400);
   }
 
   // Send data from app

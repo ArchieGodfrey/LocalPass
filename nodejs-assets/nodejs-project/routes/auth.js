@@ -35,7 +35,7 @@ router.post('/login', (req, res, next) => {
       'requestAccess',
       `User: ${username} is requesting access`,
     );
-    rn_bridge.channel.post('log', 'POST Request: Extension access requested');
+    //rn_bridge.channel.post('log', 'POST Request: Extension access requested');
 
     // Wait for user to respond on device
     rn_bridge.channel.on('accessStatus', (nativeResponse) => {
