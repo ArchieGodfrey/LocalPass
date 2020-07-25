@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const rn_bridge = require('rn-bridge');
+const middleware = require('../middleware/index');
 
-router.post('/:site', (req, res, next) => {
+router.post('/:site', middleware.authenticateJWT, (req, res, next) => {
   const {payload} = req.body;
   // Get site param
   var site = req.params.site;
@@ -28,7 +29,7 @@ router.post('/:site', (req, res, next) => {
   });
 });
 
-router.post('/logins', (req, res, next) => {
+router.post('/logins', middleware.authenticateJWT, (req, res, next) => {
   // Get login data
   const {website, username, password} = req.body;
 

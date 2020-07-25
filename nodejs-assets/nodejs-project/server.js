@@ -18,8 +18,6 @@ const middleware = require('./middleware/index');
 app.use(bodyParser.urlencoded({extended: false}));
 // parse application/json
 app.use(bodyParser.json());
-// Check JWT token
-app.use(middleware.authenticateJWT);
 // Start decryption
 app.use(middleware.startHandshake);
 
