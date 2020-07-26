@@ -15,31 +15,50 @@ export function SearchBar({search, onChangeText}) {
   const maxWidth = Dimensions.get('window').width * 0.9;
 
   // Search bar scale animation
-  const widthAnimate = new Animated.Value(minWidth);
-  const animate = (value) => {
-    Animated.timing(widthAnimate, {
+  const width = React.useRef(new Animated.Value(minWidth)).current;
+
+  // Search bar colour animation
+  const colorAnimate = React.useRef(new Animated.Value(0)).current;
+  const borderColor = colorAnimate.interpolate({
+    inputRange: [0, 255],
+    outputRange: ['rgba(244, 249, 233, 1)', 'rgba(255, 105, 51, 1)'],
+  });
+
+  const animate = (value, animateValue) => {
+    Animated.timing(animateValue, {
       toValue: value,
       duration: 500,
       useNativeDriver: false,
       easing: Easing.elastic(1),
     }).start();
   };
+
+  const onChange = (text) => {
+    if (text.length > 0) {
+      animate(maxWidth, width);
+    } else {
+      animate(minWidth, width);
+    }
+    onChangeText(text);
+  };
+
   return (
     <Animated.View
       style={[
         styles.container,
         {
-          width: widthAnimate,
+          width,
+          borderColor,
         },
       ]}>
       <FontAwesomeIcon icon={faSearch} size={20} style={styles.searchIcon} />
       <TextInput
-        onFocus={() => animate(maxWidth)}
-        onBlur={() => animate(minWidth)}
+        onFocus={() => animate(255, colorAnimate)}
+        onBlur={() => animate(0, colorAnimate)}
         placeholder="Search"
         placeholderTextColor="#F4F9E9"
         style={styles.search}
-        onChangeText={(text) => onChangeText(text)}
+        onChangeText={(text) => onChange(text)}
         value={search}
       />
     </Animated.View>

@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-  SafeAreaView,
-  View,
-  FlatList,
-  StyleSheet,
-  StatusBar,
-} from 'react-native';
+import {SafeAreaView, View, FlatList, StyleSheet} from 'react-native';
 import {getData, storeData} from '../helpers/AsyncStorage';
 import PasswordItem from '../components/PasswordItem';
 import NewItem from '../components/NewItem';
@@ -129,12 +123,12 @@ export default function Passwords() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: StatusBar.currentHeight || 0,
     backgroundColor: '#403F4C',
   },
   inner: {
-    paddingTop: 20,
+    paddingTop: 10,
     paddingHorizontal: 20,
+    backgroundColor: '#403F4C',
   },
   list: {
     marginTop: 10,
