@@ -6,10 +6,11 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
+  KeyboardAvoidingView,
 } from 'react-native';
 
 export default function PasswordItem({
-  item: {id, website, username, password, editing},
+  item: {index, id, website, username, password, editing, newEntry},
   onChangeWebsite,
   onChangeUsername,
   onChangePassword,
@@ -49,33 +50,50 @@ export default function PasswordItem({
   };
   return (
     <TouchableOpacity style={styles.container} onPress={toggleEditing}>
-      <Text style={[styles.cover, id === editing && styles.selected]}>
-        {cleanWebsite(website)}
-      </Text>
+      <View
+        style={[
+          styles.cover,
+          id === editing && styles.selected,
+          newEntry && styles.new,
+        ]}>
+        <Text style={styles.coverText}>
+          {newEntry ? 'New Password' : cleanWebsite(website)}
+        </Text>
+      </View>
       {id === editing && (
-        <View>
+        <KeyboardAvoidingView
+          behavior="position"
+          keyboardVerticalOffset={100 * (index + 1)}
+          contentContainerStyle={styles.container}>
           <TextInput
+            placeholder="Website"
+            autoFocus={website ? website.length === 0 : true}
             style={styles.input}
             onChangeText={(text) => onChangeWebsite(text)}
             value={website}
+            autoCapitalize="none"
           />
           <TextInput
+            placeholder="Username"
             style={styles.input}
             onChangeText={(text) => onChangeUsername(text)}
             value={username}
+            autoCapitalize="none"
           />
           <TextInput
+            placeholder="Password"
             style={styles.input}
             onFocus={() => setHidePassword(false)}
             onBlur={() => setHidePassword(true)}
             secureTextEntry={hidePassword}
             onChangeText={(text) => onChangePassword(text)}
             value={password}
+            autoCapitalize="none"
           />
           <Text style={styles.delete} onPress={deleteAlert}>
             DELETE
           </Text>
-        </View>
+        </KeyboardAvoidingView>
       )}
     </TouchableOpacity>
   );
@@ -84,20 +102,25 @@ export default function PasswordItem({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#403F4C',
   },
   cover: {
-    fontSize: 32,
-    fontWeight: '600',
     borderWidth: 5,
     borderColor: '#F4F9E9',
     borderRadius: 5,
-    backgroundColor: '#403F4C',
-    color: '#F4F9E9',
     padding: 20,
     marginVertical: 8,
   },
+  coverText: {
+    fontSize: 32,
+    fontWeight: '600',
+    color: '#F4F9E9',
+  },
   selected: {
     backgroundColor: '#FF6933',
+  },
+  new: {
+    backgroundColor: '#61CB4A',
   },
   input: {
     fontSize: 20,
