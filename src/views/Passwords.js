@@ -1,9 +1,11 @@
 import * as React from 'react';
 import {SafeAreaView, View, FlatList, StyleSheet} from 'react-native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {getData, storeData} from '../helpers/AsyncStorage';
 import PasswordItem from '../components/PasswordItem';
 import NewItem from '../components/NewItem';
-import {SearchBar} from '../components/SearchBar';
+import SearchBar from '../components/SearchBar';
+import PasswordModal from '../components/PasswordModal';
 
 const useFilter = (passwords, filter) =>
   passwords.filter(
@@ -14,7 +16,9 @@ const useFilter = (passwords, filter) =>
       (x.website && x.website.toLowerCase().includes(filter.toLowerCase())),
   );
 
-export default function Passwords() {
+export default function Passwords({navigation}) {
+  const [changePassword, setChangePassword] = React.useState(false);
+  const [focused, setFocused] = React.useState(false);
   const [search, onChangeText] = React.useState('');
   const [passwords, setPasswords] = React.useState([]);
   const [currentEditing, setCurrentEditing] = React.useState(undefined);
@@ -89,8 +93,23 @@ export default function Passwords() {
 
   React.useEffect(() => {
     const noNew = [...passwords].filter((password) => !password.newEntry);
-    storeData('passwords', noNew);
+    noNew.length > 0 && storeData('passwords', noNew);
   }, [passwords, onChangeText]);
+
+  // Get route and check if focused
+  const route = useRoute();
+  useFocusEffect(
+    React.useCallback(() => {
+      setFocused(true);
+      if (route.params?.changePassword) {
+        setChangePassword(true);
+      }
+      return () => {
+        setFocused(false);
+        setChangePassword(false);
+      };
+    }, [setFocused, setChangePassword, route.params?.changePassword]),
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -116,6 +135,11 @@ export default function Passwords() {
           }
         />
       </View>
+      <PasswordModal
+        navigation={navigation}
+        focused={focused}
+        changePassword={changePassword}
+      />
     </SafeAreaView>
   );
 }

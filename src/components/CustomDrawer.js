@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {StyleSheet, View, Text} from 'react-native';
+import {StyleSheet, View, Text, TouchableOpacity} from 'react-native';
 import {
   DrawerContentScrollView,
   DrawerItemList,
@@ -18,6 +18,14 @@ export default function CustomDrawer(props) {
         activeBackgroundColor="#61AB4A"
         inactiveBackgroundColor="#FF6933AA"
       />
+      <TouchableOpacity
+        style={styles.menuItem}
+        activeOpacity={0.8}
+        onPress={() => {
+          props.navigation.navigate('Password Manager', {changePassword: true});
+        }}>
+        <Text style={styles.menuLabel}>Change Master Password</Text>
+      </TouchableOpacity>
     </DrawerContentScrollView>
   );
 }
@@ -49,5 +57,18 @@ const styles = StyleSheet.create({
     color: '#F4F9E9',
     paddingBottom: 6,
     marginLeft: 10,
+  },
+  menuItem: {
+    marginHorizontal: 10,
+    borderRadius: 5,
+    padding: 5,
+    backgroundColor: '#FF6933AA',
+  },
+  menuLabel: {
+    fontSize: 24,
+    fontWeight: '500',
+    color: '#F4F9E9',
+    paddingHorizontal: 5,
+    paddingVertical: 15,
   },
 });

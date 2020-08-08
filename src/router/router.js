@@ -45,7 +45,8 @@ const StackPasswords = () => (
           <Header onPress={() => navigation.toggleDrawer()} />
         ),
       }}
-      name="Passwords"
+      name="Password Manager"
+      initialParams={{changePassword: false}}
       component={Passwords}
     />
   </Stack.Navigator>

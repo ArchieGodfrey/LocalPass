@@ -9,7 +9,7 @@ import {
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {faSearch} from '@fortawesome/free-solid-svg-icons';
 
-export function SearchBar({search, onChangeText}) {
+export default function SearchBar({search, onChangeText}) {
   // Set widths for bar
   const minWidth = Dimensions.get('window').width * 0.35;
   const maxWidth = Dimensions.get('window').width * 0.9;
