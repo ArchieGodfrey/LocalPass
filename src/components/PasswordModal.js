@@ -19,8 +19,15 @@ export default function PasswordModal({navigation, focused, changePassword}) {
   const [errorMessage, setError] = React.useState(undefined);
   const [modalVisible, setModalVisible] = React.useState(false);
 
+  // Close modal
+  const onClose = () => {
+    navigation.setParams({changePassword: false});
+    navigation.navigate('Dashboard');
+    setModalVisible(!modalVisible);
+  };
+
   // Finish setup
-  const finalise = () => {
+  const onFinalise = () => {
     setSetup({initial: false, post: false});
     storeData('allowTouchID', isEnabled);
     setLocked(false);
@@ -121,12 +128,7 @@ export default function PasswordModal({navigation, focused, changePassword}) {
                   <Text style={styles.textStyle}>Save Password</Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => {
-                  navigation.navigate('Dashboard');
-                  setModalVisible(!modalVisible);
-                }}>
+              <TouchableOpacity style={styles.button} onPress={onClose}>
                 <Text style={styles.textStyle}>Go Back</Text>
               </TouchableOpacity>
             </KeyboardAvoidingView>
@@ -148,7 +150,7 @@ export default function PasswordModal({navigation, focused, changePassword}) {
                   style={styles.switch}
                 />
               </View>
-              <TouchableOpacity style={styles.button} onPress={finalise}>
+              <TouchableOpacity style={styles.button} onPress={onFinalise}>
                 <Text style={styles.textStyle}>Finished</Text>
               </TouchableOpacity>
             </View>
