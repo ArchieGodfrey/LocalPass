@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {SafeAreaView, View, FlatList, StyleSheet} from 'react-native';
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import {getData, storeData} from '../helpers/AsyncStorage';
+import {getData, saveLogin, getNewId, deleteLogin} from '../helpers';
 import PasswordItem from '../components/PasswordItem';
 import NewItem from '../components/NewItem';
 import SearchBar from '../components/SearchBar';
@@ -33,6 +33,7 @@ export default function Passwords({navigation}) {
   const onDelete = (id) => {
     const tempPasswords = [...passwords];
     const index = passwords.findIndex((item) => item.id === id);
+    deleteLogin(tempPasswords[index]);
     tempPasswords.splice(index, 1)[index];
     setPasswords(tempPasswords);
     setCurrentEditing(null);
@@ -63,19 +64,10 @@ export default function Passwords({navigation}) {
     }
   };
 
-  const getNewId = () => {
-    const rand = Math.floor(Math.random() * 10000);
-    if (passwords.find((x) => x.id === rand)) {
-      return getNewId();
-    } else {
-      return rand;
-    }
-  };
-
   const renderItem = ({item, index}) => (
     <PasswordItem
       item={{...item, index, editing: currentEditing}}
-      onDelete={onDelete}
+      onDelete={() => onDelete(item.id)}
       toggleEditing={() => toggleEditing(item.id)}
       onChangeWebsite={(text) => onChangeValue(item.id, text, 'website')}
       onChangeUsername={(text) => onChangeValue(item.id, text, 'username')}
@@ -84,16 +76,30 @@ export default function Passwords({navigation}) {
   );
 
   React.useEffect(() => {
-    getData('passwords').then((value) => {
-      if (value) {
-        setPasswords(value);
+    getData('passwords').then((saved) => {
+      if (saved) {
+        const toArray = [];
+        const websites = Object.keys(saved);
+        websites.forEach((logins, index) => {
+          saved[logins].forEach((login) =>
+            toArray.push({
+              newEntry: false,
+              ...login,
+            }),
+          );
+          if (index === websites.length - 1) {
+            setPasswords(toArray);
+          }
+        });
       }
     });
   }, []);
 
   React.useEffect(() => {
     const noNew = [...passwords].filter((password) => !password.newEntry);
-    noNew.length > 0 && storeData('passwords', noNew);
+    noNew.forEach((login) => {
+      saveLogin(login);
+    });
   }, [passwords, onChangeText]);
 
   // Get route and check if focused
@@ -126,7 +132,7 @@ export default function Passwords({navigation}) {
               title="Add"
               onPress={() => {
                 if (!passwords.find((x) => x.newEntry)) {
-                  const id = getNewId();
+                  const id = getNewId(passwords);
                   setPasswords([...passwords, {id, newEntry: true}]);
                   setCurrentEditing(id);
                 }

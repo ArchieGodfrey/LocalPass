@@ -15,10 +15,16 @@ router.post('/logins/:site', middleware.authenticateJWT, (req, res, next) => {
   // Wait for data from app
   rn_bridge.channel.on('retrievedData', (nativeResponse) => {
     try {
-      if (nativeResponse && nativeResponse.password) {
+      if (nativeResponse) {
         // Data exists
-        delete nativeResponse.id;
-        req.body.payload = {...payload, ...nativeResponse};
+        const logins = {};
+        nativeResponse.map(({id, username, password}) => {
+          logins[id] = {username, password};
+        });
+        req.body.payload = {
+          ...payload,
+          logins,
+        };
         next();
       } else {
         return res.sendStatus(404);
@@ -39,11 +45,11 @@ router.post('/', middleware.authenticateJWT, (req, res, next) => {
   }
 
   // Send data from app
-  rn_bridge.channel.post('sendData', {website, username, password});
+  rn_bridge.channel.post('saveData', {website, username, password});
   //rn_bridge.channel.post('log', 'POST Request: New login information');
 
   // Wait for data from app
-  rn_bridge.channel.on('recievedData', (nativeResponse) => {
+  rn_bridge.channel.on('savedData', (nativeResponse) => {
     try {
       if (nativeResponse && nativeResponse.status === 'OK') {
         // Data exists

@@ -38,18 +38,31 @@ const startHandshake = (req, res, next) => {
     const decryptedIV = RSADecrypt(privateKey, AESIVBuffer).toString('ascii');
 
     // 3) Decrypt data using AES key and iv
-    const decryptedAESData = {};
-    const keys = Object.keys(encrypted);
-    keys.forEach((key) => {
-      decryptedAESData[key] = AESDecrypt(
-        decryptedAESKey,
-        decryptedIV,
-        encrypted[key],
-      );
-    });
-    req.body.decryptedData = decryptedAESData;
+    req.body.decryptedData = decryptObject(
+      encrypted,
+      {},
+      decryptedAESKey,
+      decryptedIV,
+    );
   }
   next();
+};
+
+const decryptObject = (encrypted, decrypted, decryptedAESKey, decryptedIV) => {
+  const keys = Object.keys(encrypted);
+  keys.forEach((key) => {
+    if (typeof encrypted[key] === 'object') {
+      decrypted[key] = decryptObject(
+        encrypted[key],
+        {},
+        decryptedAESKey,
+        decryptedIV,
+      );
+    } else {
+      decrypted[key] = AESDecrypt(decryptedAESKey, decryptedIV, encrypted[key]);
+    }
+  });
+  return decrypted;
 };
 
 const RSADecrypt = (key, data) =>
@@ -62,7 +75,7 @@ const RSADecrypt = (key, data) =>
     data,
   );
 
-function AESDecrypt(key, iv, text) {
+const AESDecrypt = (key, iv, text) => {
   let ivBuf = Buffer.from(iv, 'hex');
   let encryptedText = Buffer.from(text, 'hex');
   let decipher = crypto.createDecipheriv(
@@ -73,6 +86,6 @@ function AESDecrypt(key, iv, text) {
   let decrypted = decipher.update(encryptedText);
   decrypted = Buffer.concat([decrypted, decipher.final()]);
   return decrypted.toString();
-}
+};
 
 module.exports.startHandshake = startHandshake;

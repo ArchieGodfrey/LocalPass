@@ -12,11 +12,7 @@ const endHandshake = (req, res) => {
     const encryptedAESKey = RSAEncrypt(key, Buffer.from(AESKey));
 
     // 2) Encrypt payload with AES key
-    const encryptedAESData = {};
-    const keys = Object.keys(payload);
-    keys.forEach((item) => {
-      encryptedAESData[item] = AESEncrypt(AESKey, iv, payload[item]);
-    });
+    const encryptedAESData = encryptObject(payload, {});
 
     // 3) Encrypt iv with External Public Key
     const encryptedIV = RSAEncrypt(key, iv);
@@ -33,6 +29,18 @@ const endHandshake = (req, res) => {
   }
 };
 
+const encryptObject = (data, encrypted) => {
+  const keys = Object.keys(data);
+  keys.forEach((key) => {
+    if (typeof data[key] === 'object') {
+      encrypted[key] = encryptObject(data[key], {});
+    } else {
+      encrypted[key] = AESEncrypt(AESKey, iv, data[key]);
+    }
+  });
+  return encrypted;
+};
+
 const RSAEncrypt = (key, data) =>
   crypto.publicEncrypt(
     {
@@ -43,11 +51,11 @@ const RSAEncrypt = (key, data) =>
     data,
   );
 
-function AESEncrypt(key, IV, text) {
+const AESEncrypt = (key, IV, text) => {
   let cipher = crypto.createCipheriv(algorithm, Buffer.from(key), IV);
   let encrypted = cipher.update(text);
   encrypted = Buffer.concat([encrypted, cipher.final()]);
   return encrypted.toString('hex');
-}
+};
 
 module.exports.endHandshake = endHandshake;

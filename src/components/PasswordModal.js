@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import TouchID from 'react-native-touch-id';
-import {getData, storeData} from '../helpers/AsyncStorage';
+import {getData, storeData} from '../helpers';
 
 export default function PasswordModal({navigation, focused, changePassword}) {
   const [locked, setLocked] = React.useState(true);

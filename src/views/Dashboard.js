@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {NetworkInfo} from 'react-native-network-info';
 import nodejs from 'nodejs-mobile-react-native';
-import {getData, storeData} from '../helpers/AsyncStorage';
+import {getData, storeData} from '../helpers';
 // import LogList from '../components/LogList';
 
 const ServerStatusEnum = {

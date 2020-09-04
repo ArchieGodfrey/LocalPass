@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
 } from 'react-native';
+import {cleanWebsite} from '../helpers';
 
 export default function PasswordItem({
   item: {index, id, website, username, password, editing, newEntry},
@@ -40,14 +41,14 @@ export default function PasswordItem({
       ],
     );
   };
-  const cleanWebsite = (text) => {
-    // Remove protocol and everything after domain
-    const cleanText = text.split('//').pop().split('/')[0];
-    if (cleanText.length > 20) {
-      return cleanText.substring(0, 16) + '...';
-    }
-    return cleanText;
+
+  const limitLength = (text) => {
+    const cleanText = cleanWebsite(text);
+    return cleanText.length > 20
+      ? cleanText.substring(0, 16) + '...'
+      : cleanText;
   };
+
   return (
     <TouchableOpacity style={styles.container} onPress={toggleEditing}>
       <View
@@ -57,7 +58,7 @@ export default function PasswordItem({
           newEntry && styles.new,
         ]}>
         <Text style={styles.coverText}>
-          {newEntry ? 'New Password' : cleanWebsite(website)}
+          {newEntry ? 'New Password' : limitLength(website)}
         </Text>
       </View>
       {id === editing && (
